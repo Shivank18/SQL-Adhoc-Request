@@ -1,0 +1,50 @@
+with cte as 
+(
+				SELECT 
+				sl.roll_number,
+				sl.student_name,
+				sl.class,
+				sl.section,
+				sl.school_name,
+				sum(case when pc.subject = 'math' and sr.option_marked <> 'e' and ca.correct_option = sr.option_marked 
+					   then 1 else 0 end) as math_correct,
+				sum(case when pc.subject = 'math' and sr.option_marked<> 'e' and ca.correct_option <> sr.option_marked 
+					   then 1 else 0 end) as math_wrong,
+				sum(case when sr.option_marked = 'e' and pc.subject = 'math' then 1 else 0 end) as math_yet_to_learn,
+				sum(case when pc.subject='math' then 1 else 0 end) as math_total,
+				sum(case when pc.subject = 'science' and sr.option_marked <> 'e' and ca.correct_option = sr.option_marked 
+					   then 1 else 0 end) as science_correct,
+				sum(case when pc.subject = 'science' and sr.option_marked<> 'e' and ca.correct_option <> sr.option_marked 
+					   then 1 else 0 end) as science_wrong,
+				sum(case when sr.option_marked = 'e' and pc.subject = 'science' then 1 else 0 end) as science_yet_to_learn,
+				sum(case when pc.subject='science' then 1 else 0 end) as science_total
+				FROM student_list sl
+				join student_response sr on
+								sl.roll_number = sr.roll_number
+				join correct_answer ca on
+								ca.question_paper_code = sr.question_paper_code and
+								ca.question_number = sr.question_number
+				join question_paper_code pc on
+								pc.paper_code = ca.question_paper_code
+				group by sl.roll_number,sl.class,sl.section,sl.school_name
+ )	
+ 
+SELECT 
+				roll_number,
+				student_name,
+				class,
+				section,
+				school_name,
+                math_correct,
+                math_wrong,
+                math_yet_to_learn,
+                math_correct as math_score,
+                concat(round(math_correct*100/math_total,2)," ",'%') as math_percentage,
+                science_correct,
+                science_wrong,
+                science_yet_to_learn,
+				science_correct as science_score,
+                concat(round(science_correct*100/science_total,2)," ",'%') as science_percentage
+                
+
+ from cte
